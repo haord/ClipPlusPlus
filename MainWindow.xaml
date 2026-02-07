@@ -1,0 +1,103 @@
+﻿<Window x:Class="ClipPlusPlus.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ClipPlusPlus"
+        mc:Ignorable="d"
+        Title="Clip++ Settings" Height="700" Width="800"
+        DataContext="{StaticResource MainViewModel}"
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <TabControl>
+            <TabItem Header="General Settings">
+                <StackPanel Margin="20">
+                    <TextBlock Text="Clip++ Settings" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+
+                    <GroupBox Header="History" Margin="0,0,0,10">
+                        <StackPanel Margin="10">
+                            <DockPanel LastChildFill="True" Margin="0,0,0,5">
+                                <TextBlock Text="Max History Items:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox Text="{Binding PendingSettings.HistoryLimit, UpdateSourceTrigger=PropertyChanged}" Width="50" HorizontalAlignment="Left"/>
+                            </DockPanel>
+                            <DockPanel LastChildFill="True" Margin="0,0,0,5">
+                                <TextBlock Text="History Group Size:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox Text="{Binding PendingSettings.GroupSize, UpdateSourceTrigger=PropertyChanged}" Width="50" HorizontalAlignment="Left"/>
+                            </DockPanel>
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Text="Preview Size (px):" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox Text="{Binding PendingSettings.PreviewSize, UpdateSourceTrigger=PropertyChanged}" Width="50" HorizontalAlignment="Left"/>
+                                <TextBlock Text="(200-800, Default: 400)" FontSize="10" Foreground="Gray" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                            </DockPanel>
+                            
+                            <Button Content="Clear All History" Command="{Binding ClearHistoryCommand}" HorizontalAlignment="Left" Margin="0,10,0,0" Width="120"/>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <GroupBox Header="General" Margin="0,0,0,10">
+                        <StackPanel Margin="10">
+                            <CheckBox Content="Launch at Windows Startup" IsChecked="{Binding PendingSettings.LaunchAtStartup}"/>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <GroupBox Header="Shortcuts" Margin="0,0,0,10">
+                        <StackPanel Margin="10">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Text="Menu Shortcut:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox Text="{Binding PendingSettings.Hotkey}" IsEnabled="False" Width="150" HorizontalAlignment="Left"/>
+                                <TextBlock Text="(Default: Ctrl+Shift+V)" FontSize="10" Foreground="Gray" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <Button Content="Apply Settings" Command="{Binding ApplySettingsCommand}" HorizontalAlignment="Right" Width="120" Margin="0,10,0,0"/>
+                </StackPanel>
+            </TabItem>
+            
+            <TabItem Header="Manage Snippets">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                        <TextBlock Text="Folders" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <ListBox ItemsSource="{Binding SnippetFolders}" x:Name="FolderList" Height="250" DisplayMemberPath="Name"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                            <Button Content="Add" Command="{Binding AddFolderCommand}" Width="60" Margin="0,0,5,0"/>
+                            <Button Content="Delete" Command="{Binding DeleteFolderCommand}" CommandParameter="{Binding SelectedItem, ElementName=FolderList}" Width="60"/>
+                        </StackPanel>
+                        
+                        <TextBlock Text="Snippets" FontWeight="Bold" Margin="0,15,0,5"/>
+                        <ListBox ItemsSource="{Binding SelectedItem.Snippets, ElementName=FolderList}" x:Name="SnippetList" Height="250" DisplayMemberPath="Title"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                            <Button Content="Add" Command="{Binding AddSnippetCommand}" CommandParameter="{Binding SelectedItem, ElementName=FolderList}" Width="60" Margin="0,0,5,0"/>
+                            <Button Content="Delete" Command="{Binding DeleteSnippetCommand}" CommandParameter="{Binding SelectedItem, ElementName=SnippetList}" Width="60"/>
+                        </StackPanel>
+                    </StackPanel>
+                    
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Edit Details" FontWeight="Bold" Margin="0,0,0,10"/>
+                        
+                        <TextBlock Text="Folder Name:"/>
+                        <TextBox Text="{Binding SelectedItem.Name, ElementName=FolderList, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15"/>
+                        
+                        <Separator Margin="0,0,0,15"/>
+                        
+                        <TextBlock Text="Snippet Title:"/>
+                        <TextBox Text="{Binding SelectedItem.Title, ElementName=SnippetList, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                        
+                        <TextBlock Text="Snippet Content:"/>
+                        <TextBox Text="{Binding SelectedItem.Content, ElementName=SnippetList, UpdateSourceTrigger=PropertyChanged}" 
+                                 AcceptsReturn="True" Height="200" VerticalScrollBarVisibility="Auto"/>
+                        
+                        <Button Content="Save All Snippets" Command="{Binding SaveSnippetsCommand}" Margin="0,20,0,0" HorizontalAlignment="Right" Width="120"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <Button Content="Close" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="80" Margin="10" Click="Close_Click"/>
+    </Grid>
+</Window>
