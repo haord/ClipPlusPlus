@@ -78,6 +78,9 @@ namespace ClipPlusPlus.ViewModels
 
             // Initialize groups
             UpdateHistoryGroups();
+
+            // Apply startup setting on initialization
+            SetStartup(Settings.LaunchAtStartup);
         }
 
         private void PruneHistory()
@@ -388,6 +391,7 @@ namespace ClipPlusPlus.ViewModels
         {
             bool historyLimitChanged = Settings.HistoryLimit != PendingSettings.HistoryLimit;
             bool groupSizeChanged = Settings.GroupSize != PendingSettings.GroupSize;
+            bool launchAtStartupChanged = Settings.LaunchAtStartup != PendingSettings.LaunchAtStartup;
 
             Settings.UpdateFrom(PendingSettings);
             StorageService.SaveSettings(Settings);
@@ -401,8 +405,43 @@ namespace ClipPlusPlus.ViewModels
             {
                 UpdateHistoryGroups();
             }
+
+            if (launchAtStartupChanged)
+            {
+                SetStartup(Settings.LaunchAtStartup);
+            }
             
             System.Windows.MessageBox.Show("Settings applied successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void SetStartup(bool enable)
+        {
+            try
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                    @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
+                
+                if (key != null)
+                {
+                    if (enable)
+                    {
+                        var exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                        key.SetValue("ClipPlusPlus", exePath);
+                    }
+                    else
+                    {
+                        key.DeleteValue("ClipPlusPlus", false);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Failed to {(enable ? "enable" : "disable")} startup: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
         }
 
         [RelayCommand]
@@ -475,6 +514,33 @@ namespace ClipPlusPlus.ViewModels
                 mainWindow.Show();
                 mainWindow.Activate();
             }
+        }
+
+        [RelayCommand]
+        private void ShowAbout()
+        {
+            var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0";
+            var message = $"""
+                Clip++
+                Version: {version}
+                
+                A powerful clipboard manager for Windows.
+                
+                Features:
+                • Clipboard history with text and image support
+                • Quick paste with global hotkey (Ctrl+Shift+V)
+                • Code snippets management
+                • Image preview on hover
+                • Windows startup support
+                
+                © 2025 Clip++
+                """;
+            
+            System.Windows.MessageBox.Show(
+                message,
+                "About Clip++",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Information);
         }
     }
 }
