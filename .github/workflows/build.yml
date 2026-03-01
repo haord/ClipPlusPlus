@@ -84,7 +84,7 @@ jobs:
           $version = "${{ github.ref_name }}"
           $version = $version -replace '^v', ''
           $src = "${{ env.PUBLISH_DIR }}\${{ env.APP_NAME }}.exe"
-          $dst = "${{ env.PUBLISH_DIR }}\${{ env.APP_NAME }}-${version}.exe"
+          $dst = "${{ env.PUBLISH_DIR }}\${{ env.APP_NAME }}-$version.exe"
           if (Test-Path $src) {
             Rename-Item -Path $src -NewName $dst
           } else {
