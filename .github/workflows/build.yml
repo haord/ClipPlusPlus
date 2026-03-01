@@ -9,6 +9,10 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
+env:
+  APP_NAME: ClipPlusPlus
+  PUBLISH_DIR: ./publish
+
 jobs:
   build:
     runs-on: windows-latest
@@ -31,14 +35,21 @@ jobs:
       - name: Build Release
         run: dotnet build --configuration Release --no-restore
 
-      - name: Publish Release
-        run: dotnet publish --configuration Release --output ./publish --self-contained false
+      - name: Publish Single File (Self-Contained)
+        run: |
+          dotnet publish --configuration Release `
+            --output ${{ env.PUBLISH_DIR }} `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:EnableCompressionInSingleFile=true `
+            -r win-x64
 
-      - name: Upload Build Artifacts
+      - name: Upload Single File Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ClipPlusPlus-Build
-          path: ./publish/
+          name: ${{ env.APP_NAME }}-SingleFile
+          path: ${{ env.PUBLISH_DIR }}/*.exe
 
   release:
     needs: build
@@ -57,16 +68,34 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
-      - name: Publish Release
-        run: dotnet publish --configuration Release --output ./publish --self-contained false
+      - name: Publish Single File (Self-Contained)
+        run: |
+          dotnet publish --configuration Release `
+            --output ${{ env.PUBLISH_DIR }} `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:EnableCompressionInSingleFile=true `
+            -r win-x64
 
-      - name: Create ZIP Archive
-        run: Compress-Archive -Path ./publish/* -DestinationPath ./ClipPlusPlus.zip
+      - name: Rename Executable with Version
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}"
+          $version = $version -replace '^v', ''
+          $src = "${{ env.PUBLISH_DIR }}\${{ env.APP_NAME }}.exe"
+          $dst = "${{ env.PUBLISH_DIR }}\${{ env.APP_NAME }}-${version}.exe"
+          if (Test-Path $src) {
+            Rename-Item -Path $src -NewName $dst
+          } else {
+            Get-ChildItem ${{ env.PUBLISH_DIR }} -Filter *.exe | Select-Object -First 1 | Rename-Item -NewName $dst
+          }
+          echo "OUTPUT_FILE=$dst" >> $env:GITHUB_ENV
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: ./ClipPlusPlus.zip
+          files: ${{ env.PUBLISH_DIR }}/*.exe
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

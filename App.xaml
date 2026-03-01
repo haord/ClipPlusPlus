@@ -65,6 +65,7 @@
                 <Separator />
                 <MenuItem Header="Settings..." Command="{Binding ShowSettingsCommand, Source={StaticResource MainViewModel}}" />
                 <MenuItem Header="Clear History" Command="{Binding ClearHistoryCommand, Source={StaticResource MainViewModel}}" />
+                <MenuItem Header="About" Command="{Binding ShowAboutCommand, Source={StaticResource MainViewModel}}" />
                 <MenuItem Header="Exit" Command="{Binding ExitCommand, Source={StaticResource MainViewModel}}" />
             </ContextMenu>
         </ResourceDictionary>
